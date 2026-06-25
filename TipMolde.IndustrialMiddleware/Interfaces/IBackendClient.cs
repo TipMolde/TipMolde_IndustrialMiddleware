@@ -4,5 +4,5 @@ namespace TipMolde.IndustrialMiddleware.Interfaces;
 
 public interface IBackendClient
 {
-    Task SendEventsAsync(IEnumerable<MachineEventDto> events, CancellationToken cancellationToken);
+    Task SendTelemetryAsync(IEnumerable<MachineTelemetryDto> telemetry, CancellationToken cancellationToken);
 }

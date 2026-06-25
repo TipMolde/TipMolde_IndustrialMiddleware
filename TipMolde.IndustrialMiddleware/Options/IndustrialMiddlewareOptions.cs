@@ -34,9 +34,32 @@ public sealed class IndustrialMiddlewareOptions
 
     public string MtConnectFallbackMachineCode { get; set; } = "MTCONNECT-01";
 
+    public string SodickFallbackMachineIp { get; set; } = "192.168.1.1";
+
+    public string SodickFallbackMachineCode { get; set; } = "SODICK-01";
+
+    public bool SodickFallbackProbeEnabled { get; set; } = false;
+
+    public string[] SodickProbePaths { get; set; } =
+    [
+        "/"
+    ];
+
+    public bool SodickLogResponsePreview { get; set; } = true;
+
+    public int SodickResponsePreviewMaxChars { get; set; } = 2000;
+
+    public bool SodickIgnoreActiveXHostPage { get; set; } = true;
+
     public string OpcUaFallbackEndpointUrl { get; set; } = "opc.tcp://localhost:4840";
 
     public string OpcUaFallbackMachineIp { get; set; } = "127.0.0.1";
 
     public string OpcUaFallbackMachineCode { get; set; } = "OPCUA-01";
+
+    public bool OpcUaSimulationEnabled { get; set; } = false;
+
+    public string OpcUaSimulationMachineIp { get; set; } = "127.0.0.1";
+
+    public string OpcUaSimulationMachineCode { get; set; } = "OPCUA-SIM-01";
 }

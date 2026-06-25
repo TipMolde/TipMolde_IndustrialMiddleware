@@ -23,9 +23,9 @@ public sealed class BackendClient : IBackendClient
         _logger = logger;
     }
 
-    public async Task SendEventsAsync(IEnumerable<MachineEventDto> events, CancellationToken cancellationToken)
+    public async Task SendTelemetryAsync(IEnumerable<MachineTelemetryDto> telemetry, CancellationToken cancellationToken)
     {
-        var payload = events.ToArray();
+        var payload = telemetry.ToArray();
         if (payload.Length == 0)
         {
             return;
@@ -37,7 +37,7 @@ public sealed class BackendClient : IBackendClient
         });
 
         _logger.LogInformation(
-            "Payload JSON que o middleware vai enviar para o backend:{NewLine}{Json}",
+            "Telemetria JSON que o middleware vai enviar para o backend:{NewLine}{Json}",
             Environment.NewLine,
             outgoingJson);
 

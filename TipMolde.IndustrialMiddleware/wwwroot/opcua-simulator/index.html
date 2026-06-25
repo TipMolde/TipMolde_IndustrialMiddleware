@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulador OPC-UA</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f4f6f8;
+      color: #17202a;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0;
+      color: #4b5563;
+    }
+
+    .toolbar,
+    .panel,
+    .status-grid {
+      margin-top: 18px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      min-height: 42px;
+      border: 1px solid #b8c2cc;
+      border-radius: 6px;
+      padding: 0 14px;
+      background: #ffffff;
+      color: #17202a;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    button.primary {
+      border-color: #2563eb;
+      background: #2563eb;
+      color: #ffffff;
+    }
+
+    button.warning {
+      border-color: #b45309;
+      background: #f59e0b;
+      color: #111827;
+    }
+
+    button.danger {
+      border-color: #b91c1c;
+      background: #dc2626;
+      color: #ffffff;
+    }
+
+    button:disabled {
+      opacity: .55;
+      cursor: progress;
+    }
+
+    .panel {
+      background: #ffffff;
+      border: 1px solid #d7dde3;
+      border-radius: 8px;
+      padding: 18px;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      border: 1px solid #d7dde3;
+      border-radius: 8px;
+      padding: 12px;
+      background: #ffffff;
+    }
+
+    .metric span {
+      display: block;
+      color: #667085;
+      font-size: 12px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 18px;
+      overflow-wrap: anywhere;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: #344054;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    input {
+      min-height: 38px;
+      border: 1px solid #b8c2cc;
+      border-radius: 6px;
+      padding: 0 10px;
+      font: inherit;
+    }
+
+    pre {
+      min-height: 120px;
+      overflow: auto;
+      margin: 0;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      border-radius: 6px;
+      background: #111827;
+      color: #d1fae5;
+      padding: 14px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Simulador OPC-UA</h1>
+    <p>Altera o estado da maquina simulada e valida nos logs/eventos do middleware como o backend iria receber os dados.</p>
+
+    <section class="toolbar" aria-label="Acoes rapidas">
+      <button data-preset="idle">Idle</button>
+      <button class="primary" data-preset="start">Iniciar</button>
+      <button data-preset="pause">Pausa</button>
+      <button data-preset="stop">Parar</button>
+      <button class="primary" data-preset="finish">Concluir ciclo</button>
+      <button class="warning" data-preset="alarm">Alarme</button>
+      <button data-preset="clear-alarm">Limpar alarme</button>
+      <button data-preset="no-context">Sem contexto</button>
+      <button data-preset="default-context">Contexto padrao</button>
+      <button data-preset="counter">Incrementar contador</button>
+      <button class="danger" data-preset="reset">Reset</button>
+      <button id="processNow">Processar agora</button>
+    </section>
+
+    <section class="status-grid" aria-live="polite">
+      <div class="metric"><span>Estado</span><strong id="state">-</strong></div>
+      <div class="metric"><span>Ativa</span><strong id="active">-</strong></div>
+      <div class="metric"><span>Programa</span><strong id="program">-</strong></div>
+      <div class="metric"><span>Contador</span><strong id="counter">-</strong></div>
+      <div class="metric"><span>Alarme</span><strong id="alarm">-</strong></div>
+      <div class="metric"><span>Maquina</span><strong id="machine">-</strong></div>
+    </section>
+
+    <section class="panel">
+      <form id="editForm">
+        <label>Programa<input name="program" autocomplete="off"></label>
+        <label>Operador<input name="operatorCode" autocomplete="off"></label>
+        <label>OF<input name="workOrderCode" autocomplete="off"></label>
+        <label>Operacao<input name="operationCode" autocomplete="off"></label>
+        <label>Peca<input name="partCode" autocomplete="off"></label>
+        <label>Molde<input name="moldCode" autocomplete="off"></label>
+        <label>Alarme<input name="alarm" autocomplete="off"></label>
+        <label>Contador<input name="counter" type="number" min="0"></label>
+        <button class="primary" type="submit">Aplicar campos</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <pre id="payload">A carregar...</pre>
+    </section>
+  </main>
+
+  <script>
+    const apiBase = "/api/industrial/opcua-simulator";
+    const buttons = Array.from(document.querySelectorAll("button"));
+    const form = document.getElementById("editForm");
+    const payload = document.getElementById("payload");
+
+    function setBusy(value) {
+      buttons.forEach(button => button.disabled = value);
+    }
+
+    function setText(id, value) {
+      document.getElementById(id).textContent = value ?? "-";
+    }
+
+    function render(state) {
+      setText("state", state.state);
+      setText("active", state.active ? "Sim" : "Nao");
+      setText("program", state.program);
+      setText("counter", state.counter);
+      setText("alarm", state.alarm || "Sem alarme");
+      setText("machine", `${state.machineCode} / ${state.machineIp}`);
+
+      form.elements.program.value = state.program ?? "";
+      form.elements.operatorCode.value = state.operatorCode ?? "";
+      form.elements.workOrderCode.value = state.workOrderCode ?? "";
+      form.elements.operationCode.value = state.operationCode ?? "";
+      form.elements.partCode.value = state.partCode ?? "";
+      form.elements.moldCode.value = state.moldCode ?? "";
+      form.elements.alarm.value = state.alarm ?? "";
+      form.elements.counter.value = state.counter ?? 0;
+
+      payload.textContent = JSON.stringify(state, null, 2);
+    }
+
+    async function request(url, options) {
+      setBusy(true);
+      try {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+
+        const data = await response.json();
+        payload.textContent = JSON.stringify(data, null, 2);
+        return data;
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function refresh() {
+      render(await request(apiBase));
+    }
+
+    document.querySelectorAll("[data-preset]").forEach(button => {
+      button.addEventListener("click", async () => {
+        const state = await request(`${apiBase}/preset/${button.dataset.preset}`, { method: "POST" });
+        render(state);
+      });
+    });
+
+    document.getElementById("processNow").addEventListener("click", async () => {
+      await request(`${apiBase}/process-now`, { method: "POST" });
+      await refresh();
+    });
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      const counter = Number.parseInt(form.elements.counter.value, 10);
+      const command = {
+        program: form.elements.program.value,
+        operatorCode: form.elements.operatorCode.value,
+        workOrderCode: form.elements.workOrderCode.value,
+        operationCode: form.elements.operationCode.value,
+        partCode: form.elements.partCode.value,
+        moldCode: form.elements.moldCode.value,
+        alarm: form.elements.alarm.value,
+        counter: Number.isNaN(counter) ? null : counter,
+        clearAlarm: form.elements.alarm.value.trim().length === 0
+      };
+
+      render(await request(apiBase, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(command)
+      }));
+    });
+
+    refresh().catch(error => {
+      payload.textContent = error.message;
+    });
+  </script>
+</body>
+</html>

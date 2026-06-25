@@ -109,10 +109,14 @@ public sealed class MachineCatalogClient : IMachineCatalogClient
         var protocol = ReadString(item, "protocol", "Protocol", "communicationProtocol", "CommunicationProtocol");
         var endpointUrl = ReadString(item, "endpointUrl", "EndpointUrl", "opcUaEndpointUrl", "OpcUaEndpointUrl");
 
-        var pollUrl = BuildPollUrl(ip);
+        var pollUrl = BuildPollUrl(ip, protocol);
         if (string.IsNullOrWhiteSpace(endpointUrl) && string.Equals(protocol, "OPC-UA", StringComparison.OrdinalIgnoreCase))
         {
             endpointUrl = $"opc.tcp://{ip}:4840";
+        }
+        else if (string.IsNullOrWhiteSpace(endpointUrl) && IsSodickProtocol(protocol))
+        {
+            endpointUrl = $"http://{ip}";
         }
 
         target = new MachineCatalogTarget(
@@ -127,8 +131,26 @@ public sealed class MachineCatalogClient : IMachineCatalogClient
         return true;
     }
 
-    private string BuildPollUrl(string ip)
-        => $"http://{ip}:{_options.MtConnectPort}{_options.MtConnectCurrentPath}";
+    private string BuildPollUrl(string ip, string? protocol)
+    {
+        if (IsSodickProtocol(protocol))
+        {
+            return $"http://{ip}";
+        }
+
+        if (string.Equals(protocol, "OPC-UA", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(protocol, "OPCUA", StringComparison.OrdinalIgnoreCase))
+        {
+            return $"opc.tcp://{ip}:4840";
+        }
+
+        return $"http://{ip}:{_options.MtConnectPort}{_options.MtConnectCurrentPath}";
+    }
+
+    private static bool IsSodickProtocol(string? protocol)
+        => string.Equals(protocol, "SODICK", StringComparison.OrdinalIgnoreCase)
+           || string.Equals(protocol, "SODICK-HTTP", StringComparison.OrdinalIgnoreCase)
+           || string.Equals(protocol, "SODICK_HTTP", StringComparison.OrdinalIgnoreCase);
 
     private static bool ShouldStopPaging(JsonElement root, int itemsCount, int currentPage, int pageSize)
     {
