@@ -4,11 +4,11 @@ public sealed class IndustrialMiddlewareOptions
 {
     public const string SectionName = "IndustrialMiddleware";
 
-    public string BackendBaseUrl { get; set; } = "https://localhost:5001";
+    public string BackendBaseUrl { get; set; } = "http://localhost:8080";
 
     public string BackendEventsPath { get; set; } = "/api/industrial/events";
 
-    public string BackendMachinesPath { get; set; } = "/api/Maquina";
+    public string BackendMachinesPath { get; set; } = "/api/industrial/machines";
 
     public string? BackendBearerToken { get; set; }
 
@@ -26,7 +26,7 @@ public sealed class IndustrialMiddlewareOptions
 
     public int ProtocolDetectionTimeoutSeconds { get; set; } = 5;
 
-    public bool EmitToBackend { get; set; } = false;
+    public bool EmitToBackend { get; set; } = true;
 
     public string MtConnectCurrentPath { get; set; } = "/current";
 
