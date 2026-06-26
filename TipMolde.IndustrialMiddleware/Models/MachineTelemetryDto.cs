@@ -9,8 +9,6 @@ public sealed record MachineTelemetryDto(
     int? PieceCounter,
     IReadOnlyList<string> AlarmCodes,
     string? OperatorCode,
-    string? WorkOrderCode,
-    string? OperationCode,
     string? PartCode,
     string? MoldCode,
     string? SourceName,

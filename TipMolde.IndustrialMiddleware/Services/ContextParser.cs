@@ -20,7 +20,11 @@ public sealed class ContextParser : IContextParser
         var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (Match match in PairRegex.Matches(rawMessage))
         {
-            values[match.Groups["key"].Value.Trim()] = match.Groups["value"].Value.Trim();
+            var value = NormalizeValue(match.Groups["value"].Value);
+            if (value is not null)
+            {
+                values[match.Groups["key"].Value.Trim()] = value;
+            }
         }
 
         if (values.Count == 0)
@@ -29,11 +33,22 @@ public sealed class ContextParser : IContextParser
         }
 
         values.TryGetValue("OP", out var operatorCode);
-        values.TryGetValue("OF", out var workOrderCode);
-        values.TryGetValue("OPERACAO", out var operationCode);
         values.TryGetValue("PECA", out var partCode);
         values.TryGetValue("MOLDE", out var moldCode);
 
-        return new MachineContext(operatorCode, workOrderCode, operationCode, partCode, moldCode);
+        return new MachineContext(operatorCode, partCode, moldCode);
+    }
+
+    private static string? NormalizeValue(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var normalized = value.Trim();
+        return string.Equals(normalized, "null", StringComparison.OrdinalIgnoreCase)
+            ? null
+            : normalized;
     }
 }

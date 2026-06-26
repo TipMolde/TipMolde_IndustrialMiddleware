@@ -7,8 +7,6 @@ public sealed record OpcUaSimulationCommand(
     int? Counter = null,
     string? Alarm = null,
     string? OperatorCode = null,
-    string? WorkOrderCode = null,
-    string? OperationCode = null,
     string? PartCode = null,
     string? MoldCode = null,
     bool IncrementCounter = false,

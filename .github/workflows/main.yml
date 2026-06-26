@@ -1,0 +1,69 @@
+name: TipMolde Industrial Middleware CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+env:
+  SOLUTION_FILE: "TipMolde.IndustrialMiddleware.sln"
+  PROJECT_FILE: "TipMolde.IndustrialMiddleware/TipMolde.IndustrialMiddleware.csproj"
+  DOCKER_IMAGE_NAME: "tipmolde-industrial-middleware"
+
+jobs:
+  build:
+    name: Build Solution
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check local .NET SDK
+        shell: powershell
+        run: |
+          dotnet --info
+          dotnet --list-sdks
+
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION_FILE }}
+
+      - name: Build
+        run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Release --no-restore
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: industrial-middleware-build-output
+          path: |
+            **/bin/Release/**
+            **/obj/Release/**
+          if-no-files-found: warn
+
+  docker-build:
+    name: Build Docker Image
+    runs-on: self-hosted
+    needs: [ build ]
+    if: success() && github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker Image
+        shell: powershell
+        run: |
+          docker build -t ${{ env.DOCKER_IMAGE_NAME }}:latest -f Dockerfile .
+
+      - name: Tag Docker Image with Git SHA
+        shell: powershell
+        run: |
+          $gitSha = "${{ github.sha }}".Substring(0,7)
+          docker tag ${{ env.DOCKER_IMAGE_NAME }}:latest ${{ env.DOCKER_IMAGE_NAME }}:$gitSha

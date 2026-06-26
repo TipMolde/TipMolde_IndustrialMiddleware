@@ -36,25 +36,9 @@ public sealed class OpcUaConnector : IMachineConnector
 
         if (targets.Length == 0)
         {
-            if (!_options.OpcUaSimulationEnabled)
-            {
-                _logger.LogDebug(
-                    "Sem maquinas OPC-UA no catalogo. O conector fica inativo ate existir uma maquina marcada com esse protocolo.");
-                return Task.FromResult<IReadOnlyList<RawMachineData>>(Array.Empty<RawMachineData>());
-            }
-
-            targets = new[]
-            {
-                new MachineCatalogTarget(
-                    0,
-                    _options.OpcUaSimulationMachineCode,
-                    _options.OpcUaSimulationMachineIp,
-                    _options.OpcUaFallbackEndpointUrl,
-                    "OPC-UA",
-                    _options.OpcUaFallbackEndpointUrl,
-                    null,
-                    false)
-            };
+            _logger.LogDebug(
+                "Sem maquinas OPC-UA no catalogo. O conector fica inativo ate existir uma maquina marcada com esse protocolo.");
+            return Task.FromResult<IReadOnlyList<RawMachineData>>(Array.Empty<RawMachineData>());
         }
 
         if (_options.OpcUaSimulationEnabled)

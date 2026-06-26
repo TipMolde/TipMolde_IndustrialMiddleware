@@ -35,18 +35,8 @@ public sealed class MtConnectConnector : IMachineConnector
             .ToArray();
         if (targets.Length == 0)
         {
-            targets = new[]
-            {
-                new MachineCatalogTarget(
-                    0,
-                    _options.MtConnectFallbackMachineCode,
-                    _options.MtConnectFallbackMachineIp,
-                    BuildFallbackUrl(_options.MtConnectFallbackMachineIp),
-                    "MTConnect",
-                    null,
-                    null,
-                    false)
-            };
+            _logger.LogDebug("Sem maquinas MTConnect no catalogo. O conector fica inativo ate existir uma maquina marcada com esse protocolo.");
+            return Array.Empty<RawMachineData>();
         }
 
         var results = new List<RawMachineData>();
@@ -78,7 +68,4 @@ public sealed class MtConnectConnector : IMachineConnector
 
         return results;
     }
-
-    private string BuildFallbackUrl(string machineIp)
-        => $"http://{machineIp}:{_options.MtConnectPort}{_options.MtConnectCurrentPath}";
 }

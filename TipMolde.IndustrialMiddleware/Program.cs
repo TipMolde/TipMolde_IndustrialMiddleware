@@ -49,6 +49,11 @@ builder.Services.AddSingleton<IMachineStateStore, InMemoryMachineStateStore>();
 builder.Services.AddSingleton<IMachineCatalogStore, InMemoryMachineCatalogStore>();
 builder.Services.AddSingleton<IMachineTelemetryProcessor, MachineTelemetryProcessor>();
 builder.Services.AddSingleton<IOpcUaSimulationStore, InMemoryOpcUaSimulationStore>();
+builder.Services.AddHttpClient<IProtocolDetectionService, ProtocolDetectionService>((sp, client) =>
+{
+    var options = sp.GetRequiredService<IOptions<IndustrialMiddlewareOptions>>().Value;
+    client.Timeout = TimeSpan.FromSeconds(Math.Max(1, options.ProtocolDetectionTimeoutSeconds));
+});
 
 builder.Services.AddSingleton<IMachineConnector, OpcUaConnector>();
 builder.Services.AddHttpClient<MtConnectConnector>();

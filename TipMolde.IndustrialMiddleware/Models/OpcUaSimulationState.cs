@@ -10,8 +10,6 @@ public sealed record OpcUaSimulationState(
     int Counter,
     string? Alarm,
     string? OperatorCode,
-    string? WorkOrderCode,
-    string? OperationCode,
     string? PartCode,
     string? MoldCode,
     string Source,
@@ -33,8 +31,6 @@ public sealed record OpcUaSimulationState(
         }
 
         AddIfPresent(segments, "OP", OperatorCode);
-        AddIfPresent(segments, "OF", WorkOrderCode);
-        AddIfPresent(segments, "OPERACAO", OperationCode);
         AddIfPresent(segments, "PECA", PartCode);
         AddIfPresent(segments, "MOLDE", MoldCode);
         segments.Add($"SOURCE={Source}");

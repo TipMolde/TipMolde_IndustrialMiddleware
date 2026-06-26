@@ -131,8 +131,6 @@ public sealed class MachineNormalizer : IMachineNormalizer
 
     private static bool IsContextComplete(MachineContext context)
         => !string.IsNullOrWhiteSpace(context.OperatorCode)
-           && !string.IsNullOrWhiteSpace(context.WorkOrderCode)
-           && !string.IsNullOrWhiteSpace(context.OperationCode)
            && !string.IsNullOrWhiteSpace(context.PartCode)
            && !string.IsNullOrWhiteSpace(context.MoldCode);
 }

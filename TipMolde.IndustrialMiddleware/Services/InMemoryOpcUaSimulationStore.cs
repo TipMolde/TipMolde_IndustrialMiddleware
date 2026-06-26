@@ -43,8 +43,6 @@ public sealed class InMemoryOpcUaSimulationStore : IOpcUaSimulationStore
                 Counter = counter,
                 Alarm = command.ClearAlarm ? null : Normalize(command.Alarm) ?? _state.Alarm,
                 OperatorCode = command.ClearContext ? null : Normalize(command.OperatorCode) ?? _state.OperatorCode,
-                WorkOrderCode = command.ClearContext ? null : Normalize(command.WorkOrderCode) ?? _state.WorkOrderCode,
-                OperationCode = command.ClearContext ? null : Normalize(command.OperationCode) ?? _state.OperationCode,
                 PartCode = command.ClearContext ? null : Normalize(command.PartCode) ?? _state.PartCode,
                 MoldCode = command.ClearContext ? null : Normalize(command.MoldCode) ?? _state.MoldCode,
                 UpdatedAt = DateTimeOffset.UtcNow
@@ -70,8 +68,6 @@ public sealed class InMemoryOpcUaSimulationStore : IOpcUaSimulationStore
             "NO-CONTEXT" or "NOCONTEXT" or "SEM-CONTEXTO" => Apply(new OpcUaSimulationCommand(ClearContext: true)),
             "DEFAULT-CONTEXT" or "CONTEXTO" => Apply(new OpcUaSimulationCommand(
                 OperatorCode: "1001",
-                WorkOrderCode: "OF-OPC-UA",
-                OperationCode: "10",
                 PartCode: "PECA-A",
                 MoldCode: "MOLDE-A")),
             "COUNTER" or "INCREMENT" => Apply(new OpcUaSimulationCommand(IncrementCounter: true)),
@@ -93,20 +89,28 @@ public sealed class InMemoryOpcUaSimulationStore : IOpcUaSimulationStore
         => new(
             options.OpcUaSimulationMachineIp,
             options.OpcUaSimulationMachineCode,
-            options.OpcUaFallbackEndpointUrl,
+            $"opc.tcp://{options.OpcUaSimulationMachineIp}:4840",
             "IDLE",
             false,
             "OPC_SIM_A",
             0,
             null,
             "1001",
-            "OF-OPC-UA",
-            "10",
             "PECA-A",
             "MOLDE-A",
             "OPCUA_SIM",
             DateTimeOffset.UtcNow);
 
     private static string? Normalize(string? value)
-        => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var normalized = value.Trim();
+        return string.Equals(normalized, "null", StringComparison.OrdinalIgnoreCase)
+            ? null
+            : normalized;
+    }
 }

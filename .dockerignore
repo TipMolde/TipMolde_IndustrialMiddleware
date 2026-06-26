@@ -1,0 +1,16 @@
+.git
+.github
+.vs
+
+**/bin
+**/obj
+**/*.user
+**/*.suo
+**/Properties/launchSettings.json
+**/appsettings.Development.json
+
+.gitattributes
+.gitignore
+Dockerfile.*
+docker-compose.yml
+compose.yaml

@@ -161,8 +161,6 @@ public sealed class MachineTelemetryProcessor : IMachineTelemetryProcessor
             normalized.PieceCounter,
             normalized.AlarmCodes,
             normalized.Context?.OperatorCode,
-            normalized.Context?.WorkOrderCode,
-            normalized.Context?.OperationCode,
             normalized.Context?.PartCode,
             normalized.Context?.MoldCode,
             sourceName,

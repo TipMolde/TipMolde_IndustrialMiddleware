@@ -36,27 +36,8 @@ public sealed class SodickHttpConnector : IMachineConnector
 
         if (targets.Length == 0)
         {
-            if (!_options.SodickFallbackProbeEnabled)
-            {
-                _logger.LogDebug(
-                    "Sem maquinas Sodick no catalogo. O fallback Sodick esta desativado para nao consultar {MachineIp} durante testes de outros protocolos.",
-                    _options.SodickFallbackMachineIp);
-
-                return Array.Empty<RawMachineData>();
-            }
-
-            targets = new[]
-            {
-                new MachineCatalogTarget(
-                    0,
-                    _options.SodickFallbackMachineCode,
-                    _options.SodickFallbackMachineIp,
-                    BuildBaseUrl(_options.SodickFallbackMachineIp),
-                    Protocol,
-                    BuildBaseUrl(_options.SodickFallbackMachineIp),
-                    null,
-                    false)
-            };
+            _logger.LogDebug("Sem maquinas Sodick no catalogo. O conector fica inativo ate existir uma maquina marcada com esse protocolo.");
+            return Array.Empty<RawMachineData>();
         }
 
         var results = new List<RawMachineData>();

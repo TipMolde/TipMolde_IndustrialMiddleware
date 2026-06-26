@@ -106,7 +106,14 @@ public sealed class MachineCatalogClient : IMachineCatalogClient
         var machineCode = ReadString(item, "numero", "Numero", "code", "Code")
             ?? ReadString(item, "nomeModelo", "NomeModelo", "name", "Name")
             ?? $"M{machineId}";
-        var protocol = ReadString(item, "protocol", "Protocol", "communicationProtocol", "CommunicationProtocol");
+        var protocol = ReadString(
+            item,
+            "protocoloComunicacao",
+            "ProtocoloComunicacao",
+            "protocol",
+            "Protocol",
+            "communicationProtocol",
+            "CommunicationProtocol");
         var endpointUrl = ReadString(item, "endpointUrl", "EndpointUrl", "opcUaEndpointUrl", "OpcUaEndpointUrl");
 
         var pollUrl = BuildPollUrl(ip, protocol);
